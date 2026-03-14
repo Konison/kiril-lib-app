@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Кирилл lib</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 0;
+            padding-bottom: 80px;
+        }
+        .header {
+            background: rgba(0,0,0,0.3);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            font-size: 20px;
+            background: linear-gradient(90deg, #f39c12, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #888;
+            font-size: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: color 0.3s;
+        }
+        .nav-item.active { color: #f39c12; }
+        .nav-item .icon { font-size: 20px; margin-bottom: 2px; }
+        .page {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s;
+        }
+        .page.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .card {
+            background: linear-gradient(145deg, #2d2d44, #1f1f35);
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(243, 156, 18, 0.2);
+        }
+        .card.legendary { border-color: #9b59b6; }
+        .card.mythical { border-color: #e74c3c; }
+        .card.rare { border-color: #3498db; }
+        .card-icon { font-size: 32px; margin-bottom: 8px; }
+        .card-name { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+        .card-era { font-size: 10px; color: #888; }
+        .btn {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; }
+        .input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .input:focus { outline: none; border-color: #f39c12; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 10px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-box .value { font-size: 20px; font-weight: bold; color: #f39c12; }
+        .stat-box .label { font-size: 10px; color: #aaa; margin-top: 4px; }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .menu-item {
+            background: linear-gradient(145deg, #2d2d44, #1f1f35);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .menu-item:hover { transform: scale(1.02); }
+        .menu-item .icon { font-size: 32px; margin-bottom: 8px; }
+        .menu-item .label { font-size: 13px; color: #ccc; }
+        .friend-item {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .friend-item .name { font-weight: bold; }
+        .friend-item .actions { display: flex; gap: 8px; }
+        .friend-item .btn-small { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+        .leader-item {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .leader-item .rank {
+            font-size: 18px;
+            font-weight: bold;
+            width: 30px;
+        }
+        .leader-item .rank.gold { color: #f1c40f; }
+        .leader-item .rank.silver { color: #bdc3c7; }
+        .leader-item .rank.bronze { color: #cd6133; }
+        .leader-item .info { flex: 1; }
+        .leader-item .name { font-weight: bold; }
+        .leader-item .value { font-size: 12px; color: #888; }
+        .search-result {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        .search-result .title { font-weight: bold; color: #f39c12; margin-bottom: 6px; }
+        .search-result .author { font-size: 12px; color: #aaa; margin-bottom: 6px; }
+        .search-result .desc { font-size: 12px; color: #ccc; line-height: 1.5; }
+        .quiz-question { font-size: 18px; text-align: center; margin-bottom: 20px; line-height: 1.5; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-align: center;
+        }
+        .quiz-option:hover { background: rgba(243, 156, 18, 0.2); }
+        .quiz-option.correct { background: rgba(46, 204, 113, 0.3); }
+        .quiz-option.wrong { background: rgba(231, 76, 60, 0.3); }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 20px;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #2d2d44;
+            padding: 25px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-content h3 { color: #f39c12; margin-bottom: 15px; }
+        .modal-close {
+            background: #f39c12;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .empty-state { text-align: center; padding: 40px; color: #888; }
+        .empty-state .icon { font-size: 48px; margin-bottom: 15px; }
+        .section-title { font-size: 16px; color: #888; margin-bottom: 15px; margin-top: 20px; }
+        .section-title:first-child { margin-top: 0; }
+        .badge {
+            display: inline-block;
+            background: rgba(243, 156, 18, 0.2);
+            color: #f39c12;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin: 2px;
+        }
+        .profile-info {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .profile-row:last-child { border: none; }
+        .profile-label { color: #888; }
+        .profile-value { color: #fff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header"><h1>📚 Кирилл lib</h1></div>
+    
+    <!-- Home -->
+    <div class="page active" id="page-home">
+        <div class="stats">
+            <div class="stat-box"><div class="value" id="stat-queries">0</div><div class="label">Запросов</div></div>
+            <div class="stat-box"><div class="value" id="stat-cards">0</div><div class="label">Карт</div></div>
+            <div class="stat-box"><div class="value" id="stat-friends">0</div><div class="label">Друзей</div></div>
+        </div>
+        <div class="menu-grid">
+            <div class="menu-item" onclick="showPage('search')"><div class="icon">🔍</div><div class="label">Поиск книг</div></div>
+            <div class="menu-item" onclick="showPage('cards')"><div class="icon">🎴</div><div class="label">Коллекция</div></div>
+            <div class="menu-item" onclick="showPage('profile')"><div class="icon">👤</div><div class="label">Профиль</div></div>
+            <div class="menu-item" onclick="showPage('friends')"><div class="icon">👥</div><div class="label">Друзья</div></div>
+            <div class="menu-item" onclick="showPage('leaderboard')"><div class="icon">🏆</div><div class="label">Рейтинг</div></div>
+            <div class="menu-item" onclick="showPage('quiz')"><div class="icon">❓</div><div class="label">Викторина</div></div>
+        </div>
+        <div class="section-title">Последние запросы</div>
+        <div id="recent-queries"><div class="empty-state"><div class="icon">📝</div><p>Нет запросов</p></div></div>
+    </div>
+    
+    <!-- Search -->
+    <div class="page" id="page-search">
+        <input type="text" class="input" id="search-input" placeholder="Поиск книг, авторов...">
+        <button class="btn" onclick="doSearch()">Найти</button>
+        <div id="search-results"></div>
+    </div>
+    
+    <!-- Cards -->
+    <div class="page" id="page-cards">
+        <div class="stats">
+            <div class="stat-box"><div class="value" id="total-cards">0</div><div class="label">Всего карт</div></div>
+            <div class="stat-box"><div class="value" id="unique-rarities">0</div><div class="label">Редкостей</div></div>
+            <div class="stat-box"><div class="value" id="duplicate-count">0</div><div class="label">Повторок</div></div>
+        </div>
+        <div class="cards-grid" id="cards-grid"></div>
+    </div>
+    
+    <!-- Profile -->
+    <div class="page" id="page-profile">
+        <div class="profile-info">
+            <div class="profile-row"><span class="profile-label">Имя</span><span class="profile-value" id="profile-name">-</span></div>
+            <div class="profile-row"><span class="profile-label">Пол</span><span class="profile-value" id="profile-gender">-</span></div>
+            <div class="profile-row"><span class="profile-label">Запросов</span><span class="profile-value" id="profile-queries">0</span></div>
+            <div class="profile-row"><span class="profile-label">Серия чтения</span><span class="profile-value" id="profile-streak">0 дней</span></div>
+        </div>
+        <button class="btn btn-secondary" onclick="showModal('edit-name')">Изменить имя</button>
+        <button class="btn btn-secondary" onclick="showModal('edit-gender')">Изменить пол</button>
+        <div class="section-title">Мои достижения</div>
+        <div id="badges-list"></div>
+    </div>
+    
+    <!-- Friends -->
+    <div class="page" id="page-friends">
+        <button class="btn" onclick="showModal('add-friend')">Добавить друга</button>
+        <div class="section-title">Мои друзья</div>
+        <div id="friends-list"><div class="empty-state"><div class="icon">👥</div><p>Нет друзей</p></div></div>
+        <div class="section-title">Входящие заявки</div>
+        <div id="friend-requests"><div class="empty-state"><div class="icon">📭</div><p>Нет заявок</p></div></div>
+    </div>
+    
+    <!-- Leaderboard -->
+    <div class="page" id="page-leaderboard">
+        <div class="section-title">По запросам</div>
+        <div id="leader-queries"></div>
+        <div class="section-title">По картам</div>
+        <div id="leader-cards"></div>
+    </div>
+    
+    <!-- Quiz -->
+    <div class="page" id="page-quiz">
+        <div id="quiz-content">
+            <div class="quiz-question" id="quiz-question"></div>
+            <div class="quiz-options" id="quiz-options"></div>
+        </div>
+        <button class="btn" onclick="startQuiz()" id="quiz-start-btn">Начать викторину</button>
+    </div>
+    
+    <!-- Nav -->
+    <div class="nav">
+        <div class="nav-item active" onclick="showPage('home')"><div class="icon">🏠</div><div>Главная</div></div>
+        <div class="nav-item" onclick="showPage('search')"><div class="icon">🔍</div><div>Поиск</div></div>
+        <div class="nav-item" onclick="showPage('cards')"><div class="icon">🎴</div><div>Карты</div></div>
+        <div class="nav-item" onclick="showPage('profile')"><div class="icon">👤</div><div>Профиль</div></div>
+    </div>
+    
+    <!-- Modals -->
+    <div class="modal" id="modal-edit-name">
+        <div class="modal-content">
+            <h3>Изменить имя</h3>
+            <input type="text" class="input" id="new-name" placeholder="Ваше имя">
+            <button class="btn" onclick="saveName()">Сохранить</button>
+            <button class="modal-close" onclick="closeModal()">Отмена</button>
+        </div>
+    </div>
+    <div class="modal" id="modal-edit-gender">
+        <div class="modal-content">
+            <h3>Выберите пол</h3>
+            <button class="btn" onclick="saveGender('Мужской')">Мужской</button>
+            <button class="btn btn-secondary" onclick="saveGender('Женский')">Женский</button>
+            <button class="modal-close" onclick="closeModal()">Отмена</button>
+        </div>
+    </div>
+    <div class="modal" id="modal-add-friend">
+        <div class="modal-content">
+            <h3>Добавить друга</h3>
+            <input type="text" class="input" id="friend-id" placeholder="ID пользователя">
+            <button class="btn" onclick="addFriend()">Отправить заявку</button>
+            <button class="modal-close" onclick="closeModal()">Отмена</button>
+        </div>
+    </div>
+    <div class="modal" id="modal-card-detail">
+        <div class="modal-content">
+            <h3 id="card-detail-name"></h3>
+            <p id="card-detail-era" style="color:#888;margin-bottom:10px;"></p>
+            <p id="card-detail-fact" style="line-height:1.6;"></p>
+            <p id="card-detail-rarity" style="color:#f39c12;margin-top:10px;"></p>
+            <button class="modal-close" onclick="closeModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        // API base URL - server address for GitHub Pages
+        const API_BASE = 'http://144.31.221.163:8080';
+        
+        // Get user_id from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id') || '0';
+        
+        let userData = { user_id: parseInt(userId), total_queries: 0, author_cards: [], friends: [], badges: [], last_queries: [], duplicate_drops: 0, reading_streak: 0 };
+        let cardDatabase = {};
+        let currentQuiz = null;
+        
+        // Load data from API
+        async function loadData() {
+            try {
+                const response = await fetch(`${API_BASE}/api/user?user_id=${userId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    userData = { ...userData, ...data };
+                }
+            } catch (e) {
+                console.log('Using default data');
+            }
+            loadHomeData();
+        }
+        
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            const navIndex = { home: 1, search: 2, cards: 3, profile: 4 }[pageId] || 1;
+            document.querySelector('.nav-item:nth-child(' + navIndex + ')').classList.add('active');
+            
+            if (pageId === 'home') loadHomeData();
+            if (pageId === 'cards') loadCardsData();
+            if (pageId === 'profile') loadProfileData();
+            if (pageId === 'friends') loadFriendsData();
+            if (pageId === 'leaderboard') loadLeaderboard();
+        }
+        
+        function loadHomeData() {
+            document.getElementById('stat-queries').textContent = userData.total_queries || 0;
+            document.getElementById('stat-cards').textContent = (userData.author_cards || []).length;
+            document.getElementById('stat-friends').textContent = (userData.friends || []).length;
+            const queries = userData.last_queries || [];
+            const container = document.getElementById('recent-queries');
+            container.innerHTML = queries.length === 0 
+                ? '<div class="empty-state"><div class="icon">📝</div><p>Нет запросов</p></div>'
+                : queries.slice(0, 5).map(q => '<div class="search-result"><div class="desc">' + q + '</div></div>').join('');
+        }
+        
+        function loadCardsData() {
+            const cards = userData.author_cards || [];
+            document.getElementById('total-cards').textContent = cards.length;
+            document.getElementById('duplicate-count').textContent = userData.duplicate_drops || 0;
+            const rarities = new Set(cards.map(cid => cardDatabase[cid]?.rarity).filter(Boolean));
+            document.getElementById('unique-rarities').textContent = rarities.size;
+            
+            const grid = document.getElementById('cards-grid');
+            if (cards.length === 0) {
+                grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">📭</div><p>Нет карт</p></div>';
+                return;
+            }
+            grid.innerHTML = cards.map(cid => {
+                const card = cardDatabase[cid] || {};
+                const rarityClass = (card.rarity || '').toLowerCase().includes('легенд') ? 'legendary' : (card.rarity || '').toLowerCase().includes('мифич') ? 'mythical' : (card.rarity || '').toLowerCase().includes('редк') ? 'rare' : '';
+                return '<div class="card ' + rarityClass + '" onclick="showCardDetail(\'' + cid + '\')">' +
+                    '<div class="card-icon">📚</div>' +
+                    '<div class="card-name">' + (card.name || cid) + '</div>' +
+                    '<div class="card-era">' + (card.era || '') + '</div>' +
+                '</div>';
+            }).join('');
+        }
+        
+        function showCardDetail(cid) {
+            const card = cardDatabase[cid] || {};
+            document.getElementById('card-detail-name').textContent = card.name || cid;
+            document.getElementById('card-detail-era').textContent = card.era || '';
+            document.getElementById('card-detail-fact').textContent = card.fact || '';
+            document.getElementById('card-detail-rarity').textContent = 'Редкость: ' + (card.rarity || 'обычная');
+            document.getElementById('modal-card-detail').classList.add('active');
+        }
+        
+        function loadProfileData() {
+            document.getElementById('profile-name').textContent = userData.display_name || 'Не указано';
+            document.getElementById('profile-gender').textContent = userData.gender || 'Не указан';
+            document.getElementById('profile-queries').textContent = userData.total_queries || 0;
+            document.getElementById('profile-streak').textContent = (userData.reading_streak || 0) + ' дней';
+            const badges = userData.badges || [];
+            document.getElementById('badges-list').innerHTML = badges.length === 0 
+                ? '<div class="empty-state"><div class="icon">🏅</div><p>Нет достижений</p></div>'
+                : badges.map(b => '<span class="badge">' + b + '</span>').join('');
+        }
+        
+        function loadFriendsData() {
+            const friends = userData.friends || [];
+            const requests = userData.friend_requests_in || [];
+            document.getElementById('friends-list').innerHTML = friends.length === 0 
+                ? '<div class="empty-state"><div class="icon">👥</div><p>Нет друзей</p></div>'
+                : friends.map(fid => '<div class="friend-item"><span class="name">Читатель #' + fid + '</span></div>').join('');
+            document.getElementById('friend-requests').innerHTML = requests.length === 0 
+                ? '<div class="empty-state"><div class="icon">📭</div><p>Нет заявок</p></div>'
+                : requests.map(fid => '<div class="friend-item"><span class="name">Читатель #' + fid + '</span><div class="actions"><button class="btn btn-small" onclick="respondFriend(' + fid + ',true)">Принять</button><button class="btn btn-small btn-danger" onclick="respondFriend(' + fid + ',false)">Отклонить</button></div></div>').join('');
+        }
+        
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch(`${API_BASE}/api/leaderboard`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const byQueries = data.by_queries || [];
+                    const byCards = data.by_cards || [];
+                    document.getElementById('leader-queries').innerHTML = byQueries.slice(0, 10).map((p, i) => '<div class="leader-item"><span class="rank ' + (i===0?'gold':i===1?'silver':i===2?'bronze':'') + '">' + (i+1) + '</span><div class="info"><div class="name">' + p.name + '</div><div class="value">' + p.queries + ' запросов</div></div></div>').join('');
+                    document.getElementById('leader-cards').innerHTML = byCards.slice(0, 10).map((p, i) => '<div class="leader-item"><span class="rank ' + (i===0?'gold':i===1?'silver':i===2?'bronze':'') + '">' + (i+1) + '</span><div class="info"><div class="name">' + p.name + '</div><div class="value">' + p.cards + ' карт</div></div></div>').join('');
+                }
+            } catch (e) {
+                document.getElementById('leader-queries').innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
+            }
+        }
+        
+        async function doSearch() {
+            const query = document.getElementById('search-input').value;
+            if (!query) return;
+            document.getElementById('search-results').innerHTML = '<div class="loading">Поиск...</div>';
+            // Search would go to API - for now show placeholder
+            document.getElementById('search-results').innerHTML = '<div class="search-result"><div class="title">Используйте бот для поиска</div><div class="desc">Поиск книг доступен через Telegram бот @KirilLibBot</div></div>';
+        }
+        
+        const quizQuestions = [
+            { q: "Кто написал 'Войну и мир'?", options: ["Достоевский", "Толстой", "Чехов", "Гоголь"], answer: 1 },
+            { q: "Какой писатель создал Шерлока Холмса?", options: ["Агата Кристи", "Конан Дойл", "Жюль Верн", "Марк Твен"], answer: 1 },
+            { q: "Кто автор 'Мастера и Маргариты'?", options: ["Булгаков", "Набоков", "Пастернак", "Шолохов"], answer: 0 },
+        ];
+        
+        function startQuiz() {
+            currentQuiz = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+            document.getElementById('quiz-start-btn').style.display = 'none';
+            document.getElementById('quiz-content').style.display = 'block';
+            showQuizQuestion();
+        }
+        
+        function showQuizQuestion() {
+            document.getElementById('quiz-question').textContent = currentQuiz.q;
+            document.getElementById('quiz-options').innerHTML = currentQuiz.options.map((o, i) => '<div class="quiz-option" onclick="answerQuiz(' + i + ')">' + o + '</div>').join('');
+        }
+        
+        function answerQuiz(answer) {
+            const opts = document.querySelectorAll('.quiz-option');
+            if (answer === currentQuiz.answer) opts[answer].classList.add('correct');
+            else { opts[answer].classList.add('wrong'); opts[currentQuiz.answer].classList.add('correct'); }
+            setTimeout(() => { currentQuiz = quizQuestions[Math.floor(Math.random() * quizQuestions.length)]; showQuizQuestion(); }, 1500);
+        }
+        
+        function showModal(id) { document.getElementById('modal-' + id).classList.add('active'); }
+        function closeModal() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+        
+        async function saveName() {
+            const name = document.getElementById('new-name').value;
+            if (name) {
+                userData.display_name = name;
+                document.getElementById('profile-name').textContent = name;
+                await fetch(`${API_BASE}/api/profile`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, action: 'update_name', name: name }) });
+            }
+            closeModal();
+        }
+        
+        async function saveGender(gender) {
+            userData.gender = gender;
+            document.getElementById('profile-gender').textContent = gender;
+            await fetch(`${API_BASE}/api/profile`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, action: 'update_gender', gender: gender }) });
+            closeModal();
+        }
+        
+        async function addFriend() {
+            const fid = document.getElementById('friend-id').value;
+            if (fid) {
+                await fetch(`${API_BASE}/api/profile`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, action: 'add_friend', friend_id: parseInt(fid) }) });
+                closeModal();
+                alert('Заявка отправлена!');
+            }
+        }
+        
+        async function respondFriend(fid, accept) {
+            await fetch(`${API_BASE}/api/profile`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, action: 'respond_friend', friend_id: fid, accept: accept }) });
+            loadFriendsData();
+        }
+        
+        // Init
+        loadData();
+    </script>
+</body>
+</html>
