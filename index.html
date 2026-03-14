@@ -390,16 +390,50 @@
         
         // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
+        tg.ready();
         tg.expand();
         
-        // Get user_id from Telegram WebApp or URL
+        // Parse initData from URL hash (Telegram passes it as #tgWebAppData=...)
+        function parseInitData() {
+            const hash = window.location.hash;
+            if (hash.includes('tgWebAppData')) {
+                const params = new URLSearchParams(hash.substring(1));
+                const initDataStr = params.get('tgWebAppData');
+                if (initDataStr) {
+                    const initData = new URLSearchParams(initDataStr);
+                    const userStr = initData.get('user');
+                    if (userStr) {
+                        try {
+                            const user = JSON.parse(userStr);
+                            return user.id;
+                        } catch (e) {
+                            console.error('Failed to parse user:', e);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+        
+        // Get user_id from Telegram WebApp initData, initDataUnsafe, or URL
         let userId = '0';
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        
+        // Try initData from hash first (most reliable)
+        const parsedId = parseInitData();
+        if (parsedId) {
+            userId = parsedId.toString();
+        }
+        // Try initDataUnsafe
+        else if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
             userId = tg.initDataUnsafe.user.id.toString();
-        } else {
+        }
+        // Fallback to URL param
+        else {
             const urlParams = new URLSearchParams(window.location.search);
             userId = urlParams.get('user_id') || '0';
         }
+        
+        console.log('User ID:', userId);
         
         let userData = { user_id: parseInt(userId), total_queries: 0, author_cards: [], friends: [], badges: [], last_queries: [], duplicate_drops: 0, reading_streak: 0 };
         let cardDatabase = {};
