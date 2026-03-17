@@ -259,10 +259,60 @@
         .profile-row:last-child { border: none; }
         .profile-label { color: #888; }
         .profile-value { color: #fff; font-weight: bold; }
+        
+        /* Login page */
+        .login-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 20px;
+        }
+        .login-box {
+            background: rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+        .login-box .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .login-box h2 {
+            margin-bottom: 10px;
+            color: #f39c12;
+        }
+        .login-box p {
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .login-error {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+        .login-error.active { display: block; }
     </style>
 </head>
 <body>
-    <div class="header"><h1>📚 Кирилл lib</h1></div>
+    <!-- Login Page -->
+    <div class="login-page" id="login-page">
+        <div class="login-box">
+            <div class="icon">🔐</div>
+            <h2>Вход в приложение</h2>
+            <p>Напишите боту команду <b>/token</b> и введите полученный код</p>
+            <input type="text" class="input" id="token-input" placeholder="6-значный код" maxlength="6" pattern="[0-9]{6}">
+            <button class="btn" onclick="verifyToken()">Войти</button>
+            <div class="login-error" id="login-error">Неверный или просроченный код</div>
+        </div>
+    </div>
+
+    <div class="header" style="display:none" id="main-header"><h1>📚 Кирилл lib</h1></div>
     
     <!-- Home -->
     <div class="page active" id="page-home">
@@ -435,9 +485,66 @@
         
         console.log('User ID:', userId);
         
+        // Auth state
+        let isAuthenticated = userId !== '0';
         let userData = { user_id: parseInt(userId), total_queries: 0, author_cards: [], friends: [], badges: [], last_queries: [], duplicate_drops: 0, reading_streak: 0 };
         let cardDatabase = {};
         let currentQuiz = null;
+        
+        // Token verification
+        async function verifyToken() {
+            const tokenInput = document.getElementById('token-input');
+            const errorDiv = document.getElementById('login-error');
+            const token = tokenInput.value.trim();
+            
+            if (!token || token.length !== 6) {
+                errorDiv.textContent = 'Введите 6-значный код';
+                errorDiv.classList.add('active');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/token`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({token: token})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    userId = data.user_id.toString();
+                    isAuthenticated = true;
+                    userData.user_id = data.user_id;
+                    
+                    // Hide login, show app
+                    document.getElementById('login-page').style.display = 'none';
+                    document.getElementById('main-header').style.display = 'block';
+                    document.querySelector('.nav').style.display = 'flex';
+                    document.getElementById('page-home').classList.add('active');
+                    
+                    // Load user data
+                    loadData();
+                } else {
+                    errorDiv.textContent = data.error || 'Неверный код';
+                    errorDiv.classList.add('active');
+                }
+            } catch (e) {
+                errorDiv.textContent = 'Ошибка соединения';
+                errorDiv.classList.add('active');
+            }
+        }
+        
+        // Check if already authenticated
+        if (isAuthenticated) {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('main-header').style.display = 'block';
+            loadData();
+        } else {
+            // Hide main app until auth
+            document.querySelector('.nav').style.display = 'none';
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        }
         
         // Load data from API
         async function loadData() {
